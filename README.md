@@ -14,9 +14,7 @@ This project is an **automation + AI workflow** that:
 
 ---
 
-## 🎥 Demo
-- [Project Repository](#) *(add your GitHub link here)*  
-- *(Add screenshots, or a short demo video/GIF of the agent running)*
+
 
 ---
 
