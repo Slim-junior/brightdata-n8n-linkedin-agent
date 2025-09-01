@@ -1,0 +1,1032 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "affc7a8f-b684-4f31-a21d-dc1b3dc7b845",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://rss.app/feeds/tfWWHV3vQXUN5yvP.xml",
+        "options": {
+          "customFields": ""
+        }
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "261440f3-007e-4f76-80a2-2bd15da87732",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "resource": "webScrapper",
+        "operation": "triggerCollectionByUrl",
+        "dataset_id": {
+          "__rl": true,
+          "value": "gd_l1viktl72bvl7bjuj0",
+          "mode": "list",
+          "cachedResultName": "LinkedIn people profiles"
+        },
+        "urls": "={{ $json.data.toJsonString() }}",
+        "requestOptions": {}
+      },
+      "type": "@brightdata/n8n-nodes-brightdata.brightData",
+      "typeVersion": 1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "39be2104-6299-4a3d-b501-d07e94b4935c",
+      "name": "Initiate batch extraction from URL",
+      "credentials": {
+        "brightdataApi": {
+          "id": "9xUyh1nG8uT1I1If",
+          "name": "BrightData account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5fd02555-a599-4f9b-a179-f77dcc49bee4",
+              "name": "url",
+              "value": "https://www.linkedin.com/in/bulentakar",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "07bbc6ce-64e0-424f-8f62-662238709a0c",
+      "name": "extract urls"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        592,
+        0
+      ],
+      "id": "a9dcc95a-3185-4560-8478-ae49cd738cd0",
+      "name": "Aggregate urls"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": true
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "4463f93b-07df-4f36-86ce-17ff288af082",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "check snapshot again for success",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        96
+      ],
+      "id": "21fd9ff1-f53a-45c9-ae29-6c5404fc3023"
+    },
+    {
+      "parameters": {
+        "resource": "webScrapper",
+        "operation": "monitorProgressSnapshot",
+        "snapshot_id": "={{ $json.snapshot_id }}",
+        "requestOptions": {}
+      },
+      "type": "@brightdata/n8n-nodes-brightdata.brightData",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        96
+      ],
+      "id": "bd6b89b7-5485-4b96-818b-4ecd1d835685",
+      "name": "Check the status of a batch extraction",
+      "credentials": {
+        "brightdataApi": {
+          "id": "9xUyh1nG8uT1I1If",
+          "name": "BrightData account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da829d6e-fd89-4221-a613-0d3f32245c51",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ready",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        16
+      ],
+      "id": "5cbf6e30-b2bd-44f4-90d8-9882ec320ff6",
+      "name": "check if batch is ready"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1616,
+        112
+      ],
+      "id": "e8f3d57f-ccf7-4d26-b046-31ea3d8db352",
+      "name": "wait 5 seconds",
+      "webhookId": "fe0d80ca-0bc6-4f7f-9c81-4a3d6be2a338"
+    },
+    {
+      "parameters": {
+        "resource": "webScrapper",
+        "operation": "downloadSnapshot",
+        "snapshot_id": "={{ $json.snapshot_id }}",
+        "requestOptions": {}
+      },
+      "type": "@brightdata/n8n-nodes-brightdata.brightData",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        -64
+      ],
+      "id": "43304c11-396a-41f2-8f27-d9a71274bb36",
+      "name": "Download the snapshot content",
+      "credentials": {
+        "brightdataApi": {
+          "id": "9xUyh1nG8uT1I1If",
+          "name": "BrightData account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3116b445-322c-498b-ac68-fa5d195bb8c2",
+              "name": "about",
+              "value": "={{ $json.about }}",
+              "type": "string"
+            },
+            {
+              "id": "537ba704-5b12-4723-86bf-61c989959343",
+              "name": "activity",
+              "value": "={{ $json.activity }}",
+              "type": "string"
+            },
+            {
+              "id": "3367b21e-fdee-4ea9-bca3-3b3cda9dcdcb",
+              "name": "people_also_viewed",
+              "value": "={{ $json.people_also_viewed }}",
+              "type": "array"
+            },
+            {
+              "id": "65c4dd1a-550a-4ccb-8aed-2032204fda6c",
+              "name": "followers",
+              "value": "={{ $json.followers }}",
+              "type": "number"
+            },
+            {
+              "id": "880722a4-1f20-4876-a6c0-a9027f786536",
+              "name": "connections",
+              "value": "={{ $json.connections }}",
+              "type": "number"
+            },
+            {
+              "id": "41b59029-65a0-4cc9-8b1b-22b7d0d3e6aa",
+              "name": "current_company_company_id",
+              "value": "={{ $json.current_company_company_id }}",
+              "type": "string"
+            },
+            {
+              "id": "114e4334-1db4-45fa-9931-eacc8448ed35",
+              "name": "banner_image",
+              "value": "={{ $json.banner_image }}",
+              "type": "string"
+            },
+            {
+              "id": "e90f2f98-63ee-410b-bbad-aed10c3bb7b1",
+              "name": "similar_profiles",
+              "value": "={{ $json.similar_profiles }}",
+              "type": "array"
+            },
+            {
+              "id": "dfecb62f-4b33-4517-bf25-f21114e465ad",
+              "name": "first_name",
+              "value": "={{ $json.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "3f2c10fc-4028-43d8-b824-78ee5b9157bb",
+              "name": "last_name",
+              "value": "={{ $json.last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "efe46304-51bd-46d6-8e2e-075e7fc30b84",
+              "name": "input",
+              "value": "={{ $json.input }}",
+              "type": "object"
+            },
+            {
+              "id": "f4914a75-7bb8-4f3b-b33a-ce68ac24de32",
+              "name": "banner_image",
+              "value": "={{ $json.banner_image }}",
+              "type": "string"
+            },
+            {
+              "id": "8fb4b313-8ddc-4e27-87ab-ecccb391867d",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "76c09b16-880d-4600-bfa8-0fc1dc2fa150",
+              "name": "current_company_name",
+              "value": "={{ $json.current_company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "e2cb284b-92cb-4f16-91a0-e7169ed55d5f",
+              "name": "avatar",
+              "value": "={{ $json.avatar }}",
+              "type": "string"
+            },
+            {
+              "id": "4ca3ac64-a3e4-4b19-a327-c747ee0dc380",
+              "name": "education",
+              "value": "={{ $json.education }}",
+              "type": "array"
+            },
+            {
+              "id": "8d0298fb-b5ab-4183-8ac3-5cd574c7ac33",
+              "name": "people_also_viewed",
+              "value": "={{ $json.people_also_viewed }}",
+              "type": "array"
+            },
+            {
+              "id": "5b903390-0ff5-4d46-ae89-72018f6d8f89",
+              "name": "url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "38f442fd-fdf3-44ef-8a03-bc10980e97e1",
+              "name": "city",
+              "value": "={{ $json.city }}",
+              "type": "string"
+            },
+            {
+              "id": "707f2fab-2108-4704-81a0-d89e4fbbd71a",
+              "name": "country_code",
+              "value": "={{ $json.country_code }}",
+              "type": "string"
+            },
+            {
+              "id": "6b7182b9-0486-41eb-8b0c-2600820ac488",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1824,
+        -64
+      ],
+      "id": "d921aab5-541d-43d9-a4cf-d90c1ee8d33e",
+      "name": "Extract Essential Data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "287d98a3-e541-42d6-8f87-61af61105652",
+              "name": "postdata",
+              "value": "=About: {{ $json.about.toJsonString() }}\nactivity:{{ $json.activity.toJsonString() }} \npeople_also_viewed:{{ $json.people_also_viewed.toJsonString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2032,
+        -64
+      ],
+      "id": "cf7b9145-65df-42bc-930a-52c0a804e865",
+      "name": "Reduce Objects to 1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.postdata }}",
+        "options": {
+          "systemMessage": "=SYSTEM PROMPT — “LinkedIn → Daily Newsletter Generator”\n\nYou are a newsletter generator. Your job: transform one or more LinkedIn profile payloads (JSON) into a **professional daily email newsletter** summarizing notable info and activity.  \n\n## Inputs you will receive\n- A JSON array of one or more objects. Each object may include:\n  {\n    \"url\": \"https://www.linkedin.com/in/USERNAME\",\n    \"name\": \"Full Name\",\n    \"first_name\": \"First\",\n    \"last_name\": \"Last\",\n    \"title\": \"Headline/title\",\n    \"url_text\": \"string (may duplicate url)\",\n    \"default_avatar\": boolean,\n    \"memorialized_account\": boolean,\n    \"bio_links\": [ ... ],\n    \"timestamp\": \"ISO-8601 (UTC)\",\n    \"input\": { \"url\": \"original requested profile url\" }\n  }\n\nNotes:\n- Keys may be missing or null. Be resilient.\n- If a single object is given outside an array, treat it as a one-element array.\n- Use the most recent timestamp to mark the newsletter date.\n\n## Your outputs\nAlways return a JSON object with three keys:\n{\n  \"subject\": \"Concise subject line (≤60 chars)\",\n  \"preheader\": \"Supportive preview line (≤90 chars)\",\n  \"newsletter\": \"The generated newsletter content as a readable email body (plain text or simple markdown)\"\n}\n\n## Content rules\n1. Audience: professionals on LinkedIn. Tone: crisp, positive, neutral.\n2. Per profile, include:\n   - Name and title\n   - Short synthesized bio (based on headline/title)\n   - Key highlights/skills (2–4 bullet points)\n   - A link to their LinkedIn profile\n3. Include a “Today’s Highlights” section summarizing top skills/titles across profiles.\n4. End with a “For Tomorrow” suggestion encouraging the reader to add more profiles.\n5. Do not invent data. Skip unavailable fields.\n\n## Formatting rules\n- Keep it clean, professional, and skimmable.\n- Use line breaks and simple markdown (headings, bullet points, links) for structure.\n- Do NOT return raw HTML or CSS.\n- Do NOT include curly-brace placeholders in final output.\n- Ensure all links are full URLs.\n\n## Subject & preheader rules\n- Subject format: “Daily LinkedIn: {Top Name or Keyword} + {#profiles}”\n- Preheader: “Today’s snapshot: {1–3 keywords}. See profiles inside.”\n\nEND OF SYSTEM PROMPT\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2240,
+        -64
+      ],
+      "id": "6b21122a-4c8e-4efb-89c0-5ef584bdcc00",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        144
+      ],
+      "id": "432829c7-e7be-4afd-a155-ce67845c1fd6",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Sl9s4yQU6LoEycEA",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Download the snapshot content": [
+      {
+        "json": {
+          "id": "bulentakar",
+          "name": "Bulent Akar",
+          "city": "Istanbul, Istanbul, Türkiye",
+          "country_code": "TR",
+          "about": "Specialties: Information Technology, Business and Product Development, IT-Business…",
+          "current_company": {
+            "link": "https://tr.linkedin.com/company/sahibinden-com?trk=public_profile_topcard-current-company",
+            "name": "sahibinden.com",
+            "company_id": "sahibinden-com",
+            "location": null
+          },
+          "experience": null,
+          "url": "https://www.linkedin.com/in/bulentakar",
+          "people_also_viewed": [
+            {
+              "profile_link": "https://tr.linkedin.com/in/%C3%B6zg%C3%BCr-r%C4%B1za-kir-8038088?trk=public_profile_browsemap-profile",
+              "name": "Özgür Rıza KIR",
+              "about": "CTO at DOKO & Konfides",
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/doganaydin?trk=public_profile_browsemap-profile",
+              "name": "Dogan Aydin",
+              "about": null,
+              "location": "Istanbul, Türkiye"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/bulent-kizil-1737471a?trk=public_profile_browsemap-profile",
+              "name": "Bulent KIZIL",
+              "about": "CTO at ORBIT",
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://de.linkedin.com/in/fikrettoydemir?trk=public_profile_browsemap-profile",
+              "name": "Fikret Toydemir",
+              "about": null,
+              "location": "Berlin"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/hakantuzun?trk=public_profile_browsemap-profile",
+              "name": "Hakan Tüzün",
+              "about": "CTO at Link Bilgisayar A.S.",
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/goktugyildirim?trk=public_profile_browsemap-profile",
+              "name": "Göktuğ Yıldırım",
+              "about": "CTO",
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/aycangulez?trk=public_profile_browsemap-profile",
+              "name": "Aycan Gulez",
+              "about": "Izmir Lab Director at Efsora",
+              "location": "Urla"
+            },
+            {
+              "profile_link": "https://ee.linkedin.com/in/cenk-okan-%C3%B6zpay-2000?trk=public_profile_browsemap-profile",
+              "name": "Cenk Okan Özpay",
+              "about": "Smart Manufacturing",
+              "location": "Tallinn"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/yakup-%C3%BCnal-6732094?trk=public_profile_browsemap-profile",
+              "name": "Yakup Ünal",
+              "about": "Group CIO / Executive Committee Member",
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/guclukaya?trk=public_profile_browsemap-profile",
+              "name": "Guclu Kaya",
+              "about": null,
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/fbered?trk=public_profile_browsemap-profile",
+              "name": "Furağ Bered Gönültaşı",
+              "about": "CTO at Gibibyte Bilgi Teknolojileri Ltd.Şti.",
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/erdem-durak-msc-914b851?trk=public_profile_browsemap-profile",
+              "name": "Erdem Durak MSc",
+              "about": null,
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/sapmaz?trk=public_profile_browsemap-profile",
+              "name": "Mehmet Emin SAPMAZ",
+              "about": "Vice President Of Engineering at Firmanet",
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/berivanarslan?trk=public_profile_browsemap-profile",
+              "name": "Berivan Arslan Kavgaoğlu, MSc, PMP",
+              "about": "VP of Engineering || CTO || Consultant",
+              "location": "Ankara"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/azizdurmaz?trk=public_profile_browsemap-profile",
+              "name": "Aziz Durmaz",
+              "about": null,
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/burakkarababa?trk=public_profile_browsemap-profile",
+              "name": "Burak Karababa",
+              "about": "Information Technology Executive | AI Innovation & Data-Driven Solutions",
+              "location": "Istanbul, Türkiye"
+            },
+            {
+              "profile_link": "https://www.linkedin.com/in/yurdakul-orhun?trk=public_profile_browsemap-profile",
+              "name": "Yurdakul Orhun",
+              "about": "Co-Founder at Connected2.me",
+              "location": "New York City Metropolitan Area"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/orhan-can-sala%C3%A7in-a4a7523a?trk=public_profile_browsemap-profile",
+              "name": "Orhan Can Salaçin",
+              "about": "Information Technology and Services Professional",
+              "location": "Istanbul"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/codeprof?trk=public_profile_browsemap-profile",
+              "name": "Yunus Emre Yüce",
+              "about": "Tech Leader | Software Development & System Integration | 25+ Years of Experience | Senior Software Architect | Expert in C++, Qt, Oracle PL/SQL | E-commerce & Energy Systems | Full-Stack Developer & Solution Architect",
+              "location": "Ankara, Türkiye"
+            },
+            {
+              "profile_link": "https://tr.linkedin.com/in/alisarac?trk=public_profile_browsemap-profile",
+              "name": "Ali SARAC",
+              "about": "Accomplished Software Developer | CRM Specialist | AWS Solutions Architect | Polygot Programmer",
+              "location": "Istanbul, Türkiye"
+            }
+          ],
+          "educations_details": "Koç University",
+          "education": [
+            {
+              "title": "Koç University",
+              "url": "https://tr.linkedin.com/school/kocuniversity/",
+              "start_year": "2006",
+              "end_year": "2007",
+              "description": null,
+              "description_html": null,
+              "institute_logo_url": null
+            },
+            {
+              "start_year": "1993",
+              "end_year": "1995",
+              "description": null,
+              "description_html": null,
+              "institute_logo_url": null
+            },
+            {
+              "start_year": "1987",
+              "end_year": "1991",
+              "description": null,
+              "description_html": null,
+              "institute_logo_url": null
+            },
+            {
+              "start_year": "1984",
+              "end_year": "1987",
+              "description": null,
+              "description_html": null,
+              "institute_logo_url": null
+            }
+          ],
+          "avatar": "https://media.licdn.com/dms/image/v2/C4D03AQFF9lj0bC01rg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1536039534259?e=2147483647&v=beta&t=iOLt9KbsTMPi32g-j_qwSSRlGhZgD9GrUVJMUDh4Zpg",
+          "followers": 11063,
+          "connections": 500,
+          "current_company_company_id": "sahibinden-com",
+          "current_company_name": "sahibinden.com",
+          "organizations": [
+            {
+              "title": "ETID (E-commerce Association)",
+              "membership_type": "Member",
+              "start_date": "Oct 2015",
+              "end_date": "Present",
+              "membership_number": null
+            },
+            {
+              "title": "TUBISAD (Informatics Industry Association)",
+              "membership_type": "Member",
+              "start_date": "Oct 2015",
+              "end_date": "Present",
+              "membership_number": null
+            },
+            {
+              "title": "The Union of Chambers and Commodity Exchanges of Turkey (TOBB) - Software Council",
+              "membership_type": "Member",
+              "start_date": "Oct 2010",
+              "end_date": "Present",
+              "membership_number": null
+            }
+          ],
+          "location": "Istanbul",
+          "input_url": "https://www.linkedin.com/in/bulentakar",
+          "linkedin_id": "bulentakar",
+          "activity": [
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://www.linkedin.com/posts/mertoztekin_its-nice-and-funny-to-see-the-team-swap-activity-7366871028804808704-ZAOx",
+              "title": "It’s nice (and funny) to see the team swap RAG statuses for my emojis 🙂 Some humor always helps.",
+              "img": "https://media.licdn.com/dms/image/v2/D4D22AQFbkx1a4erUHQ/feedshare-shrink_800/B4DZjxiKSLHwAg-/0/1756398921482?e=2147483647&v=beta&t=zI0fxNEzAKhwKyp-lo_qpg5BcAX6WZgruVMPRwFnT24",
+              "id": "7366871028804808704"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/g%C3%BCntulu-peker-3572541_sahibinden-techtrek-gelece%C4%9Finsahibisensin-activity-7366461350002286592-Y8zr",
+              "title": "Geleceğin teknolojisini inşa edecek gençlerle beraber olmak gerçekten ilham verici. 🤩 15 Ağustos’ta Sahiplex’te, Ar-Ge staj programımız Tech Trek…",
+              "img": "https://media.licdn.com/dms/image/v2/D4D05AQGlET5q4tRe9g/videocover-high/B4DZjrtehlHsCI-/0/1756301239029?e=2147483647&v=beta&t=Db617ZUaN0TTJiHnhytTFioSHCYe0ZVQ84CDPkj_uZg",
+              "id": "7366461350002286592"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/sahibinden-com_sahibinden-techtrek-gelece%C4%9Fisahiplen-activity-7366457886341849090-Q4Pn",
+              "title": "1 haftada 5.000 başvuru alan Tech Trek Staj Programımızın deneyim gününde adaylarımızla buluştuk. sahibinden.com olarak…",
+              "img": "https://media.licdn.com/dms/image/v2/D4D05AQHzMY3NvAef-w/feedshare-thumbnail_720_1280/B4DZjrqM7sHYA4-/0/1756300369128?e=2147483647&v=beta&t=dIQbN8c_FRte6xXX5J5c6Oj1U9oSZTcrNBT4WsrPmyo",
+              "id": "7366457886341849090"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/orhandogan_y-combinatora-ba%C5%9Fvurumuzu-yapt%C4%B1k-se%C3%A7ilmemiz-activity-7366009636631511040-wIp-",
+              "title": "Y Combinator’a başvurumuzu yaptık. 🚀 Seçilmemiz halinde, kurucu ortağımla birlikte 2025 sonbaharında 3 ay boyunca San Francisco’da…",
+              "img": "https://static.licdn.com/aero-v1/sc/h/53n89ecoxpr1qrki1do3alazb",
+              "id": "7366009636631511040"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/salesnetwork_lisa-%C3%B6d%C3%BCll%C3%BC-kad%C4%B1n-liderler-aras%C4%B1ndaki-yerinizi-activity-7364618167068876800-FmGg",
+              "title": "LiSA ödüllü kadın liderler arasındaki yerinizi alın! sahibinden.com Satış ve Müşteri Deneyimi Genel Müdür Yardımcısı Demet Tekin Sari 2022…",
+              "img": "https://media.licdn.com/dms/image/v2/D4D22AQFvfPz9yFsKmw/feedshare-shrink_2048_1536/B4DZjRhMcgHsAw-/0/1755861797732?e=2147483647&v=beta&t=SYVtucpfdEHD8EQwhOaFoyFGnPWMnBmC8MBIHWc5TU0",
+              "id": "7364618167068876800"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/craftgate_craftgate-k%C3%BClt%C3%BCr-ekip-activity-7364636907814682626-12ok",
+              "title": "🤔 Ekipçe her iki haftada bir bir araya gelerek şu soruları soruyoruz: - Neyi iyi yapıyoruz? - Neyi daha iyi yapabiliriz? Çünkü biliyoruz ki, her…",
+              "img": "https://media.licdn.com/dms/image/v2/D4D22AQGzkums2_SEoA/feedshare-shrink_800/B4DZjRyPcjGgAg-/0/1755866266249?e=2147483647&v=beta&t=Q7WVYSu1AcvFsV6kPGqr3hmUGVyE9MTx74Yh6lTGwEo",
+              "id": "7364636907814682626"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/orhandogan_bir-otel-rezervasyon-%C5%9Firketinde-800-bin-activity-7364193307339444225-L4Bu",
+              "title": "“Bir otel rezervasyon şirketinde 800 bin euroluk bir hata bulmuştuk.” Evet, yanlış duymadın: sekiz yüz bin euro. Ve bu hata öyle kendi kendine…",
+              "img": "https://static.licdn.com/aero-v1/sc/h/53n89ecoxpr1qrki1do3alazb",
+              "id": "800"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/orhandogan_amerikada-%C3%A7al%C4%B1%C5%9Fma-k%C3%BClt%C3%BCr%C3%BC-ve-gittigidiyor-activity-7363487407494647809-A4PR",
+              "title": "Amerika’da Çalışma Kültürü ve GittiGidiyor/eBay Hatıralarım 2007’nin Aralık ayında GittiGidiyor ailesine katıldım. Daha birkaç ay önce eBay azınlık…",
+              "img": "https://static.licdn.com/aero-v1/sc/h/53n89ecoxpr1qrki1do3alazb",
+              "id": "7363487407494647809"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/halilozturkci_how-we-rooted-copilot-eye-research-activity-7360206397533224961-Pv2l",
+              "title": "Microsoft Copilot'ta keşfedilen güvenlik açığı, kurumsal AI güvenliğinde biz güvenlikçilerin mutlaka altını çizmesi gereken başlıklardan bazılarını…",
+              "img": "https://media.licdn.com/dms/image/sync/v2/D4E27AQE4VDzetTm8vw/articleshare-shrink_1280_800/B4EZhBWQpKGwAQ-/0/1753443011362?e=2147483647&v=beta&t=HhsjIga19j8TDFdjPTDIJtIUcQmLRSVcCUhR_093FF4",
+              "id": "7360206397533224961"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://www.linkedin.com/posts/yilmazer_midas-activity-7364556493666365440-Nkin",
+              "title": "raised $80M --> reimagine fintech proud to our team — ready for what’s next! #midas",
+              "img": "https://static.licdn.com/aero-v1/sc/h/53n89ecoxpr1qrki1do3alazb",
+              "id": "7364556493666365440"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://www.linkedin.com/posts/nuricankaya_i-accepted-an-offer-from-snowflake-to-lead-activity-7363691414695653376-Vztr",
+              "title": "I accepted an offer from Snowflake to lead the Snowflake Analytics Marketing team! On August 25th; I am super excited to join Snowflake - the leading…",
+              "img": "https://media.licdn.com/dms/image/v2/D5622AQHyaOH9W638-Q/feedshare-shrink_800/B56ZjEWUQ4HMAg-/0/1755640842250?e=2147483647&v=beta&t=olHWPdwZ5FJskIwr4HMyoKUaHhYt0nR54LztmCUOwCA",
+              "id": "7363691414695653376"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/ilker-kuruoz_garantibbva-garantibbvateknoloji-datosimpactawards-activity-7364237106036039681-FBsL",
+              "title": "Garanti BBVA Teknoloji’nin geliştirdiği Dolandırıcılıkta Aracı Hesap Risk Skorlaması Modeli, Datos Impact Awards 2025’te “En İyi Finans Kurumu…",
+              "img": "https://media.licdn.com/dms/image/v2/D4D10AQEAVOJ14PE6dQ/image-shrink_800/B4DZjL3m4_GQAs-/0/1755767009568?e=2147483647&v=beta&t=TNuPVivLuUTW9RHkfqizOHF4uUIH2IEtPcKKQvO6XgY",
+              "id": "7364237106036039681"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://www.linkedin.com/posts/antsevim_sharing-something-a-bit-personal-today-activity-7364581668973686785-b7_X",
+              "title": "Sharing something a bit personal today… Over the past 6 months I’ve dropped 12 kilos and quite a bit of body fat. Nothing magic about it — just…",
+              "img": "https://media.licdn.com/dms/image/v2/D4D22AQHBHblQ4JGbIQ/feedshare-shrink_1280/B4DZjQ__8tG8As-/0/1755853095346?e=2147483647&v=beta&t=T6bNsqRB9ufcms6URYygODECLH7tWVcw0eI_rZ32ffM",
+              "id": "7364581668973686785"
+            },
+            {
+              "interaction": "Liked by Bulent Akar",
+              "link": "https://tr.linkedin.com/posts/sahibinden-com_ba%C5%9Far%C4%B1n%C4%B1nsahibisensin-research-llmasajudge-activity-7354421454475526145-f3kl",
+              "title": "Çalışma arkadaşlarımızdan Mehmet Selman Baysan, Serkan UYSAL, İrem İşlek, PhD ve Çağla Çığ Karaman, PhD tarafından yazılan \"LLM-as-a-Judge: Automated…",
+              "img": "https://media.licdn.com/dms/image/v2/D4D22AQG88cb8lmKeiQ/feedshare-shrink_2048_1536/B4DZhAnVTcHAAs-/0/1753430711809?e=2147483647&v=beta&t=786y-aQAAkOnZPef88Q8it89zaYT5LULe4333E1Xh5A",
+              "id": "7354421454475526145"
+            }
+          ],
+          "linkedin_num_id": "7681901",
+          "banner_image": "https://media.licdn.com/dms/image/v2/D5616AQGzvKqYWcKNVg/profile-displaybackgroundimage-shrink_200_800/profile-displaybackgroundimage-shrink_200_800/0/1732733836749?e=2147483647&v=beta&t=_4gSzjk8dF75_j8G8x1SKUCjG13elIRGkJW9PCsw9_0",
+          "honors_and_awards": null,
+          "similar_profiles": [
+            {
+              "url": "https://tr.linkedin.com/in/%C3%B6zg%C3%BCr-r%C4%B1za-kir-8038088",
+              "name": "Özgür Rıza KIR",
+              "title": "CTO at DOKO & Konfides",
+              "url_text": "https://tr.linkedin.com/in/özgür-rıza-kir-8038088"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/doganaydin",
+              "name": "Dogan Aydin",
+              "title": null,
+              "url_text": "https://tr.linkedin.com/in/doganaydin"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/bulent-kizil-1737471a",
+              "name": "Bulent KIZIL",
+              "title": "CTO at ORBIT",
+              "url_text": "https://tr.linkedin.com/in/bulent-kizil-1737471a"
+            },
+            {
+              "url": "https://de.linkedin.com/in/fikrettoydemir",
+              "name": "Fikret Toydemir",
+              "title": null,
+              "url_text": "https://de.linkedin.com/in/fikrettoydemir"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/hakantuzun",
+              "name": "Hakan Tüzün",
+              "title": "CTO at Link Bilgisayar A.S.",
+              "url_text": "https://tr.linkedin.com/in/hakantuzun"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/goktugyildirim",
+              "name": "Göktuğ Yıldırım",
+              "title": "CTO",
+              "url_text": "https://tr.linkedin.com/in/goktugyildirim"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/aycangulez",
+              "name": "Aycan Gulez",
+              "title": "Izmir Lab Director at Efsora",
+              "url_text": "https://tr.linkedin.com/in/aycangulez"
+            },
+            {
+              "url": "https://ee.linkedin.com/in/cenk-okan-%C3%B6zpay-2000",
+              "name": "Cenk Okan Özpay",
+              "title": "Smart Manufacturing",
+              "url_text": "https://ee.linkedin.com/in/cenk-okan-özpay-2000"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/yakup-%C3%BCnal-6732094",
+              "name": "Yakup Ünal",
+              "title": "Group CIO / Executive Committee Member",
+              "url_text": "https://tr.linkedin.com/in/yakup-ünal-6732094"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/guclukaya",
+              "name": "Guclu Kaya",
+              "title": null,
+              "url_text": "https://tr.linkedin.com/in/guclukaya"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/fbered",
+              "name": "Furağ Bered Gönültaşı",
+              "title": "CTO at Gibibyte Bilgi Teknolojileri Ltd.Şti.",
+              "url_text": "https://tr.linkedin.com/in/fbered"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/erdem-durak-msc-914b851",
+              "name": "Erdem Durak MSc",
+              "title": null,
+              "url_text": "https://tr.linkedin.com/in/erdem-durak-msc-914b851"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/sapmaz",
+              "name": "Mehmet Emin SAPMAZ",
+              "title": "Vice President Of Engineering at Firmanet",
+              "url_text": "https://tr.linkedin.com/in/sapmaz"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/berivanarslan",
+              "name": "Berivan Arslan Kavgaoğlu, MSc, PMP",
+              "title": "VP of Engineering || CTO || Consultant",
+              "url_text": "https://tr.linkedin.com/in/berivanarslan"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/azizdurmaz",
+              "name": "Aziz Durmaz",
+              "title": null,
+              "url_text": "https://tr.linkedin.com/in/azizdurmaz"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/burakkarababa",
+              "name": "Burak Karababa",
+              "title": "Information Technology Executive | AI Innovation & Data-Driven Solutions",
+              "url_text": "https://tr.linkedin.com/in/burakkarababa"
+            },
+            {
+              "url": "https://www.linkedin.com/in/yurdakul-orhun",
+              "name": "Yurdakul Orhun",
+              "title": "Co-Founder at Connected2.me",
+              "url_text": "https://www.linkedin.com/in/yurdakul-orhun"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/orhan-can-sala%C3%A7in-a4a7523a",
+              "name": "Orhan Can Salaçin",
+              "title": "Information Technology and Services Professional",
+              "url_text": "https://tr.linkedin.com/in/orhan-can-salaçin-a4a7523a"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/codeprof",
+              "name": "Yunus Emre Yüce",
+              "title": "Tech Leader | Software Development & System Integration | 25+ Years of Experience | Senior Software Architect | Expert in C++, Qt, Oracle PL/SQL | E-commerce & Energy Systems | Full-Stack Developer & Solution Architect",
+              "url_text": "https://tr.linkedin.com/in/codeprof"
+            },
+            {
+              "url": "https://tr.linkedin.com/in/alisarac",
+              "name": "Ali SARAC",
+              "title": "Accomplished Software Developer | CRM Specialist | AWS Solutions Architect | Polygot Programmer",
+              "url_text": "https://tr.linkedin.com/in/alisarac"
+            }
+          ],
+          "default_avatar": false,
+          "memorialized_account": false,
+          "bio_links": [],
+          "first_name": "Bulent",
+          "last_name": "Akar",
+          "timestamp": "2025-08-31T23:47:55.117Z",
+          "input": {
+            "url": "https://www.linkedin.com/in/bulentakar"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "extract urls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract urls": {
+      "main": [
+        [
+          {
+            "node": "Aggregate urls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate urls": {
+      "main": [
+        [
+          {
+            "node": "Initiate batch extraction from URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initiate batch extraction from URL": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check the status of a batch extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check snapshot again for success": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the status of a batch extraction": {
+      "main": [
+        [
+          {
+            "node": "check if batch is ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check if batch is ready": {
+      "main": [
+        [
+          {
+            "node": "Download the snapshot content",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "wait 5 seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait 5 seconds": {
+      "main": [
+        [
+          {
+            "node": "check snapshot again for success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download the snapshot content": {
+      "main": [
+        [
+          {
+            "node": "Extract Essential Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Extract Essential Data": {
+      "main": [
+        [
+          {
+            "node": "Reduce Objects to 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reduce Objects to 1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cf5e4418-f1f6-463e-a35a-a0172cf7f406",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "76bf990e109e6d93365889a3212142d4813645c2122b1db4c56a733508b526e6"
+  },
+  "id": "sShaMbMtUhz9NtZV",
+  "tags": []
+}
